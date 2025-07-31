@@ -1,0 +1,30 @@
+import mongoose from "mongoose";
+const AssignmentSchema = new mongoose.Schema({
+    title:{
+        type:String,
+        required:true
+    },
+    batchId:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"Batch"
+    },
+    description:{
+        type:String,
+    },
+    instructions:{
+        type:String
+    },
+    subject: {
+        type: String,
+        enum: ['softskil', "technical", 'aptitude'],
+        required: true
+    },
+    deadline:{
+        type:Date
+    },
+    file:{
+        type:String
+    }
+})
+
+export default mongoose.model("Assignment",AssignmentSchema)
