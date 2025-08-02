@@ -1,0 +1,82 @@
+City Beggar Tracker is a social impact built using the MERN stack . 
+It helps users report beggar sightings in cities, allowing NGOs and authorities 
+to take real-time action, support genuine cases, and prevent organized rackets.
+
+
+👥 User Roles
+Reporter (Public Users)
+
+Register/login
+
+Report beggar sightings
+
+View reports on map
+
+Admin
+
+View/manage all reports
+
+Assign reports to NGO workers
+
+Export data, broadcast notices
+
+NGO Worker
+
+View assigned cases
+
+Update status (Verified, Helped, etc.)
+
+Upload proof and add notes
+
+📌 Core Features
+➤ Reporter Panel:
+Report beggars using form with:
+
+Location (auto)
+
+Photo (optional)
+
+Description, age estimate
+
+View existing reports on a map
+
+➤ Admin Dashboard:
+View all reports (map + list)
+
+Assign reports to NGO users
+
+Change report statuses
+
+Export data
+
+➤ NGO Panel:
+View assigned cases
+
+Update report status
+
+Upload help proofs
+
+Add notes/comments
+
+🔐 Authentication & Authorization
+
+Role-based access (reporter, admin, NGO)
+
+     I will explore it more furhter
+	 
+	 
+	 ------>Today(26-Apr-2025) Session-------------->
+	 ---------Service Now ------------------------
+	 learning.service-now.com
+	 developer.service-now
+	 csa
+	 cis(ITSM,CSM,HR,FSM,ITOM,ITBM)
+	 cad
+	 (now learning)---->we can lerarn from this website
+	 NowAssit -> it will helpful for learning service now
+	 Glide ApI
+	 Janji
+	 
+	 instance of service now 
+	 learn ITSM (incident , change,problem process understand)
+	 tech(client script(js),bussiness rules,script include, UI policies after it go to glide api) 

@@ -90,46 +90,7 @@ export const allAssignment = async(request,response)=>{
         console.log(err)
     }
 }
-// export const allAssignment = async (req, res) => {
-//     try {
-//         const { batchId } = req.params;
 
-//         // Simple version - bina user check ke
-//         if (!batchId) {
-//             return res.status(400).json({ 
-//                 message: "Batch ID required hai" 
-//             });
-//         }
-
-//         // Batch exist karta hai ya nahi
-//         const batch = await Batch.findById(batchId);
-//         if (!batch) {
-//             return res.status(404).json({ 
-//                 message: "Batch nahi mila" 
-//             });
-//         }
-
-//         // Assignments fetch karte hai
-//         const assignments = await Assignment.find({ batchId })
-//             .sort({ deadline: 1 }) // Deadline ke according sort karte hai
-//             .populate('batchId', 'batchName');
-
-//         res.status(200).json({
-//             message: "Assignments mil gaye",
-//             assignments,
-//             totalAssignments: assignments.length
-//         });
-
-//     } catch (error) {
-//         console.error("Assignments fetch karte waqt error:", error);
-//         res.status(500).json({
-//             message: "Kuch gadbad hai server me",
-//             error: error.message
-//         });
-//     }
-// };
-
-// Assignment update karne ka function  
 export const updateAssignment = async (req, res) => {
     try {
         const { assignmentId } = req.params;

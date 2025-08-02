@@ -331,66 +331,133 @@ export const upload = multer({
 // }
 
 
-export const insertStudent = async (request, response) => {
+// export const insertStudent = async (request, response) => {
+//     try {
+//         const { name, email, role, batch } = request.body
+//         if (!name || name.trim() === "") {
+//             return response.status(400).json({ message: "Name is required" });
+//         }
+//         if (!email || email.trim() === "") {
+//             return response.status(400).json({ message: "Email is required" });
+//         }
+//         if (!batch || batch.trim() === "") {
+//             return response.status(400).json({ message: "Please select a batch" });
+//         }
+//         const userRole = (role && role.trim() !== "" && role !== "undefined")
+//             ? role.trim()
+//             : "student";
+//         const existingUser = await User.findOne({ email: email.trim() })
+//         if (existingUser) {
+//             return response.status(400).json({ message: "User already exists" })
+//         }
+//         const batchName = batch.trim();
+//         const findBatch = await Batch.findOne({ batchName: batchName })
+
+//         if (!findBatch) {
+//             return response.status(400).json({message:"Batch not Found" })
+//         }
+//         const genpass = genratePassword()
+//         const hashPass = await bcrypt.hash(genpass, 12)
+//         await sendPasswordEmail(email.trim(), name.trim(), genpass);
+//         const userCreate = await User.create({
+//             name: name.trim(),
+//             email: email.trim(),
+//             password: hashPass,
+//             role: userRole,
+//             batch: findBatch._id
+//         })
+//         response.json({message:"User Created created"})
+//         if (userRole === "student") {
+//             console.log("11. Adding student to batch...");
+//             const updateResult = await Batch.findByIdAndUpdate(
+//                 findBatch._id,  
+//                 { $push: { students: userCreate._id } },
+//                 { new: true }
+//             );
+//         } else if (userRole === "teacher") {
+//             console.log("11. Adding teacher to batch...");
+//             const updateResult = await Batch.findByIdAndUpdate(
+//                 findBatch._id,  
+//                 { $push: { teachers: userCreate._id } },
+//                 { new: true }
+//             );
+//         }
+//     }
+//     catch (err) {
+//         console.error("Full error:", err);
+
+//         return response.status(500).json({
+//             message: "Internal server error"
+//         })
+//     }
+// }
+export const insertStudent = async (req, res) => {
     try {
-        const { name, email, role, batch } = request.body
+        const { name, email, role, batch } = req.body;
+
+        // Check basic required fields
         if (!name || name.trim() === "") {
-            return response.status(400).json({ message: "Name is required" });
+            return res.status(400).json({ message: "Name is required" });
         }
         if (!email || email.trim() === "") {
-            return response.status(400).json({ message: "Email is required" });
+            return res.status(400).json({ message: "Email is required" });
         }
-        if (!batch || batch.trim() === "") {
-            return response.status(400).json({ message: "Please select a batch" });
-        }
-        const userRole = (role && role.trim() !== "" && role !== "undefined")
-            ? role.trim()
-            : "student";
-        const existingUser = await User.findOne({ email: email.trim() })
-        if (existingUser) {
-            return response.status(400).json({ message: "User already exists" })
-        }
-        const batchName = batch.trim();
-        const findBatch = await Batch.findOne({ batchName: batchName })
 
-        if (!findBatch) {
-            return response.status(400).json({message:"Batch not Found" })
+        const userRole = role?.trim() || "student";
+        const trimmedEmail = email.trim();
+        const trimmedName = name.trim();
+
+        // If user already exists
+        const userExists = await User.findOne({ email: trimmedEmail });
+        if (userExists) {
+            return res.status(400).json({ message: "User already exists" });
         }
-        const genpass = genratePassword()
-        const hashPass = await bcrypt.hash(genpass, 12)
-        await sendPasswordEmail(email.trim(), name.trim(), genpass);
-        const userCreate = await User.create({
-            name: name.trim(),
-            email: email.trim(),
-            password: hashPass,
+
+        let batchDoc = null;
+
+        // Only check batch if user is not admin
+        if (userRole !== "admin") {
+            if (!batch || batch.trim() === "") {
+                return res.status(400).json({ message: "Please select a batch" });
+            }
+
+            batchDoc = await Batch.findOne({ batchName: batch.trim() });
+            if (!batchDoc) {
+                return res.status(400).json({ message: "Batch not found" });
+            }
+        }
+
+        // Generate and hash password
+        const plainPassword = genratePassword();
+        const hashedPassword = await bcrypt.hash(plainPassword, 12);
+
+        // Send password to user's email
+        await sendPasswordEmail(trimmedEmail, trimmedName, plainPassword);
+
+        // Create user
+        const newUser = await User.create({
+            name: trimmedName,
+            email: trimmedEmail,
+            password: hashedPassword,
             role: userRole,
-            batch: findBatch._id
-        })
-        response.json({message:"User Created created"})
-        if (userRole === "student") {
-            console.log("11. Adding student to batch...");
-            const updateResult = await Batch.findByIdAndUpdate(
-                findBatch._id,  
-                { $push: { students: userCreate._id } },
-                { new: true }
-            );
-        } else if (userRole === "teacher") {
-            console.log("11. Adding teacher to batch...");
-            const updateResult = await Batch.findByIdAndUpdate(
-                findBatch._id,  
-                { $push: { teachers: userCreate._id } },
-                { new: true }
-            );
-        }
-    }
-    catch (err) {
-        console.error("Full error:", err);
+            batch: batchDoc?._id || null
+        });
 
-        return response.status(500).json({
-            message: "Internal server error"
-        })
+        // Link student or teacher to batch
+        if (userRole === "student") {
+            await Batch.findByIdAndUpdate(batchDoc._id, { $push: { students: newUser._id } });
+        } else if (userRole === "teacher") {
+            await Batch.findByIdAndUpdate(batchDoc._id, { $push: { teachers: newUser._id } });
+        }
+
+        return res.status(200).json({ message: "User created successfully." });
+
+    } catch (err) {
+        console.error("Insert student error:", err);
+        return res.status(500).json({ message: "Something went wrong on the server." });
     }
-}
+};
+
 
 export const genratePassword = () => {
     const char = "abcde12234FGHI#$%$%^%^&"

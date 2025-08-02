@@ -21,7 +21,7 @@ const submissionSchema = new mongoose.Schema({
     feedback:{
         type:String
     },
-    staus:{
+    status:{
         type:String,
         required:true
     }
