@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
-import Batch from "../models/BatchModel.js"
-const ueserSchema = mongoose.Schema({
+import Batch from "../models/BatchModel.js";
+
+const userSchema = mongoose.Schema({
     name: {
         type: String,
         required: true
@@ -8,16 +9,17 @@ const ueserSchema = mongoose.Schema({
     email: {
         type: String,
         required: true,
-        unique:true
+        unique: true
     },
     password: {
         type: String,
-        required: true
+        required: true 
     },
     role: {
         type: String,
         enum: ['admin', "student", 'teacher'],
-        required: true
+        required: false,
+        default: "student"
     },
     isApproved: {
         type: String,
@@ -25,20 +27,18 @@ const ueserSchema = mongoose.Schema({
     },
     batch: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Batch",
+        ref: "Batch"
     },
     accessibleBatches: [
         {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'Batch',
-        },
+            ref: 'Batch'
+        }
     ],
-    profile:{
-     
-            type:String,
-            default:""
-     
+    profile: {
+        type: String,
+        default: ""
     }
-})
+});
 
-export default mongoose.model("User", ueserSchema)
+export default mongoose.model("User", userSchema);
