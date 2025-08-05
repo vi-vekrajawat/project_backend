@@ -33,7 +33,7 @@ export const createBatch = async (request, response) => {
 
 export const allBatches = async (request, response) => {
     try {
-        const getAll = await Batch.find().populate('students').populate('teachers')
+        const getAll = await Batch.find().populate('students').populate('teachers').populate("assignments")
         response.json({ message: "all batches are", getAll })
     }
     catch (err) {

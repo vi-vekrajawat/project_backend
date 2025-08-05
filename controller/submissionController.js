@@ -1,5 +1,6 @@
-import { response } from "express";
+import { request, response } from "express";
 import Submission from "../models/SubmissionModel.js";
+import User from "../models/User.js";
 // export const submitAssignment = async(request,response)=>{
 //     try{
 
@@ -10,6 +11,24 @@ import Submission from "../models/SubmissionModel.js";
 //         console.log(err)
 //     }
 // }
+export const submissionId = async (request, response) => {
+  try {
+    const id = request.params.userId;
+    console.log(id);
+    const submissions = await Submission.find({ userId: id });
+    const submissionCount = await Submission.countDocuments({ userId: id });
+
+    response.json({
+      message: "Submitted Assignments",
+      submissionCount
+    });
+
+  } catch (err) {
+    console.error(err);
+    response.status(500).json({ message: "Server error" });
+  }
+};
+
 export const submitAssignment = async (req, res) => {
   try {
     const { userId, assignmentId, description, feedback, status } = req.body;

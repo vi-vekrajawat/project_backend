@@ -13,7 +13,7 @@ const userSchema = mongoose.Schema({
     },
     password: {
         type: String,
-        required: true 
+        required: true
     },
     role: {
         type: String,
@@ -38,6 +38,10 @@ const userSchema = mongoose.Schema({
     profile: {
         type: String,
         default: ""
+    },
+    joindate: {
+        type: Date,
+        default: Date.now
     }
 });
 

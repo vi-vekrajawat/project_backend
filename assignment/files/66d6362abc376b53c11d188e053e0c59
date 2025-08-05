@@ -1,0 +1,85 @@
+Que 1 :-
+What is JavaScript?
+-> JavaScript is the programming language for the Web.
+-> JavaScript can Upadate both HTML and CSS.
+-> JavaScript Can calculate,Manipulate and validate Data.
+-> JavaScript- Versatile,Dynamic Typed Language,Support both Client side and Server side development,Js Single-threded(execute one task at a time)
+   ,interpreted language(execute line by line)
+-> variable decided at runtime that's why it is dynamic typed language 
+
+Que2:-
+What is features of JavaScript
+-> Easy SetUp        -> Browser Support
+-> Dom Manipilation  -> Event Handling
+-> Dynamic Typing    -> Functional Programming
+-> Cross-Platform Support -> Object-oriented Programming
+-> Builts-in Objects   -> Object Prototype
+-> Global Object     -> Builts-in Methods
+-> Modular Programming  -> JSON , Asyncrhonous Programming
+-> Event - Driven Architecture   -> Server/Client side Support 
+-> Light weighted scripting language  -> Dynamic Typing 
+
+
+Que3 :-
+What is DOM 
+-> With the help os dom you can dynamically access and update content,structure ,and style of any decument .
+-> In other words: The HTML DOM is a standard for how to get, change, add, or delete HTML elements.
+-> A DOM, or Document Object Model, acts as a translator between Javascript and HTML.
+-> It’s the bridge between your static HTML code and the dynamic, interactive web pages.
+-> hierarchical representation of a webpage
+
+Why is required 
+-> Dynamic content updates
+-> User Interaction
+-> Flexibility
+-> Cross-Platform compatibility 
+
+poperties of dom
+-> Node-Bases
+-> Hierarchical
+-> Lve
+-> Platform Independent 
+
+
+Que4:-
+How to perform click event on Dom using javascript 
+There Are two types method 
+1 AddEventListener()
+2 Using onClick Property();
+
+Que5:->
+What is alert() and confirm()
+Alert()
+when an alert box pops up , the user will have to click "OK" to proceed 
+Confirm()
+the user wiil have to click either "OK" or "Cancel" to proceed
+if select "OK" , the box returns  "true" , if select "Cancel" , then "False"
+Prompt()
+When a prompt box pops up, the user will have to click either "OK" or "Cancel" to proceed after entering an input value.
+If the user clicks "OK" the box returns the input value. If the user clicks "Cancel" the box returns null.
+
+Que6:=>
+Difference between undifined and null
+Both indicates abesence of value 
+undefined means variable declareda not assigned
+undefined is a primitive value automatically assigned to variables in certain situations:
+Uninitialized Variables,Missing Function Return,Non-Existent Object Properties or Array Elements
+
+null represents intentional absence of value , meaing variable has assigned of value null
+
+Undefined == true  (loose equality considers them equal)
+Undefined === false (they are not strictly equal in type).
+
+Que7:->
+What is diffrence between == and ===
+
+(==,double equal to) -> loose equality opretar
+it converts the values to the same type before comparing them.
+Objects or arrays are compared by reference (not content).
+(===,Triple equal to) -> Strict equality opretar
+Compares both value and type exactly.
+Objects or arrays are compared by reference (not content).
+
+Que8:->
+What is Function can we Overload function in javascript
+unction is a block of code if you want to execute a task again and again then we use function it is reusable 
