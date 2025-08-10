@@ -19,6 +19,7 @@ mongoose.connect(process.env.DB_URL).then((result) => {
     app.use(cors())
     app.use(express.urlencoded({ extended: true }))
     app.use('/batch', batchRouter)
+    app.use('/admin',adminRouter)
     app.use('/teacher', teacherRoute)
     app.use('/student', submissionRouter)
     app.listen(3000, () => {
