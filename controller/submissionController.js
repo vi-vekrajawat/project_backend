@@ -1,16 +1,7 @@
 import { request, response } from "express";
 import Submission from "../models/SubmissionModel.js";
 import User from "../models/User.js";
-// export const submitAssignment = async(request,response)=>{
-//     try{
 
-//         const tasksubmissions = await Submission.create(request.body)
-//         response.status(200).json({message:"Submissions Successfully",tasksubmissions})
-//     }
-//     catch(err){
-//         console.log(err)
-//     }
-// }
 export const submissionId = async (request, response) => {
   try {
     const id = request.params.userId;
@@ -33,7 +24,6 @@ export const submitAssignment = async (req, res) => {
   try {
     const { userId, assignmentId, description, feedback, status } = req.body;
 
-    // Prevent duplicate
     const alreadySubmitted = await Submission.findOne({ userId, assignmentId });
     if (alreadySubmitted) {
       console.log("submitted")
@@ -56,27 +46,29 @@ export const submitAssignment = async (req, res) => {
   }
 };
 
-export const getAll = async(request,response)=>{
-    try{
-        const allass = await Submission.find()
-        return response.json({message:"All Asignments",allass})
-    }
-    catch(err){
-        console.log(err)
-    }
+export const getAll = async (request, response) => {
+  try {
+    const allass = await Submission.find()
+    return response.json({ message: "All Asignments", allass })
+  }
+  catch (err) {
+    console.log(err)
+  }
 }
 
-// Get all submitted assignment IDs for a student
 export const getSubmittedAssignmentIds = async (req, res) => {
   try {
-    const studentId = req.params.studentId;
-    const submissions = await Submission.find({ student: studentId }).select("assignment");
+    const { studentId } = req.params;
+    console.log(studentId)
+    const submissions = await Submission.find({ userId: studentId }).select("assignmentId");
+    console.log(submissions)
 
-    const submittedAssignmentIds = submissions.map(sub => sub.assignment.toString());
-
+    const submittedAssignmentIds = submissions.map(sub => sub.assignmentId.toString());
+console.log(submittedAssignmentIds)
     res.json({ submittedAssignmentIds });
   } catch (err) {
     console.error("Error fetching submitted assignment IDs:", err);
     res.status(500).json({ message: "Server error while fetching submitted assignments." });
   }
 };
+

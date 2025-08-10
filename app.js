@@ -18,7 +18,6 @@ mongoose.connect(process.env.DB_URL).then((result) => {
     app.use(express.json())
     app.use(cors())
     app.use(express.urlencoded({ extended: true }))
-    app.use('/admin', adminRouter)
     app.use('/batch', batchRouter)
     app.use('/teacher', teacherRoute)
     app.use('/student', submissionRouter)

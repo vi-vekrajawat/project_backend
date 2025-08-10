@@ -42,6 +42,11 @@ const userSchema = mongoose.Schema({
     joindate: {
         type: Date,
         default: Date.now
+    },
+    bio:
+    {
+        type: String,
+        default: ""
     }
 });
 

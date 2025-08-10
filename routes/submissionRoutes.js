@@ -7,7 +7,7 @@ const taskFile = multer({dest:"assignment/files"})
 
 submissionRouter.post('/', taskFile.single("fileName"),submitAssignment)
 submissionRouter.get('/',getAll)
-submissionRouter.get("/submitted/:studentId", getSubmittedAssignmentIds);
+submissionRouter.get("/submitted-assignments/:studentId", getSubmittedAssignmentIds);
 submissionRouter.get("/submission/:userId",submissionId)
 
 

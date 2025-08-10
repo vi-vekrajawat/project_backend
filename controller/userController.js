@@ -32,85 +32,87 @@ export const googleLogin = async (req, res) => {
 
 
 export const uploadStudents = async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ message: "Please upload an Excel file." });
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: "Please upload an Excel file." });
+        }
+
+        const workbook = xlsx.readFile(req.file.path);
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const students = xlsx.utils.sheet_to_json(worksheet);
+
+        const seenEmails = new Set(); // To track duplicate emails in Excel
+        const results = [];
+
+        for (let i = 0; i < students.length; i++) {
+            const student = students[i];
+
+            const name = student.name?.trim();
+            const email = student.email?.toLowerCase().trim();
+            const role = student.role?.trim().toLowerCase() || "student";
+            const batchId = student.batch?.trim();
+
+            if (!name || !email) {
+                console.log(`Skipping row ${i + 1}: Missing name or email`);
+                continue;
+            }
+
+            if (seenEmails.has(email)) {
+                console.log(`Duplicate email in Excel: ${email}`);
+                continue;
+            }
+            seenEmails.add(email);
+
+            const existingUser = await User.findOne({ email });
+            if (existingUser) {
+                console.log(`User already exists in DB: ${email}`);
+                continue;
+            }
+
+            const newPassword = genratePassword();
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+            const newUser = await User.create({
+                name,
+                email,
+                role,
+                password: hashedPassword,
+                batch: batchId,
+                isApproved: true // Set to true or false based on your workflow
+            });
+
+            await sendPasswordEmail(email, name, newPassword);
+
+            if (batchId && (role === "student" || role === "teacher")) {
+                const updateField = role === "student" ? { students: newUser._id } : { teachers: newUser._id };
+
+                await Batch.findOneAndUpdate(
+                    { _id: batchId },
+                    { $push: updateField },
+                    { new: true, upsert: true }
+                );
+            }
+
+            results.push({
+                name,
+                email,
+                password: newPassword,
+            });
+
+            console.log("Created User", email)
+        }
+
+        res.status(200).json({
+            message: " Successfully created ", students: results,
+        });
+
+    } catch (error) {
+        console.error(" Error:", error);
+        res.status(500).json({
+            message: "Something went wrong during student upload.",
+        });
     }
-
-    const workbook = xlsx.readFile(req.file.path);
-    const sheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[sheetName];
-    const students = xlsx.utils.sheet_to_json(worksheet);
-
-    const seenEmails = new Set(); // To track duplicate emails in Excel
-    const results = [];
-
-    for (let i = 0; i < students.length; i++) {
-      const student = students[i];
-
-      const name = student.name?.trim();
-      const email = student.email?.toLowerCase().trim();
-      const role = student.role?.trim().toLowerCase() || "student";
-      const batchId = student.batch?.trim();
-
-      if (!name || !email) {
-        console.log(`Skipping row ${i + 1}: Missing name or email`);
-        continue;
-      }
-
-      if (seenEmails.has(email)) {
-        console.log(`Duplicate email in Excel: ${email}`);
-        continue;
-      }
-      seenEmails.add(email);
-
-      const existingUser = await User.findOne({ email });
-      if (existingUser) {
-        console.log(`User already exists in DB: ${email}`);
-        continue;
-      }
-
-      const newPassword = genratePassword();
-      const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-      const newUser = await User.create({
-        name,
-        email,
-        role,
-        password: hashedPassword,
-        batch: batchId,
-        isApproved: true // Set to true or false based on your workflow
-      });
-
-      await sendPasswordEmail(email, name, newPassword);
-
-      if (batchId && (role === "student" || role === "teacher")) {
-        const updateField = role === "student" ? { students: newUser._id } : { teachers: newUser._id };
-
-        await Batch.findOneAndUpdate(
-          { _id: batchId },
-          { $push: updateField },
-          { new: true, upsert: true }
-        );
-      }
-
-      results.push({
-        name,
-        email,
-        password: newPassword,
-      });
-
-    console.log("Created User",email)
-    }
-
-    res.status(200).json({
-      message: " Successfully created ",students: results,});
-
-  } catch (error) {
-    console.error(" Error:", error);
-    res.status(500).json({
-      message: "Something went wrong during student upload.",});
-  }
 };
 
 export const insertStudent = async (req, res) => {
@@ -248,24 +250,25 @@ export const userLogin = async (request, response) => {
             return response.status(401).json({ success: false, message: "Password is wrong" });
         }
 
-        const findUser = await User.findOne({email})
-        console.log(findUser)
+        const findUser = await User.findOne({ email })
+        // console.log(findUser)
+        console.log(findUser.batch)
 
         let userRole = "student"
-        if (search.role === "teacher"){
-            userRole = "teacher" ,
-            console.log(userRole)
-        return response.status(200).json({message: "Login successfully",userRole,findUser});
+        if (search.role === "teacher") {
+            userRole = "teacher",
+                console.log(findUser)
+            return response.status(200).json({ message: "Login successfully", userRole, findUser });
         }
-        else if(search.role === "admin"){
-             userRole = "admin" ,
-            console.log(userRole)
-        return response.status(200).json({message: "Login successfully",userRole,findUser});
+        else if (search.role === "admin") {
+            userRole = "admin",
+                console.log(findUser)
+            return response.status(200).json({ message: "Login successfully", userRole, findUser });
         }
-           else if(search.role === "student"){
-             userRole = "student" ,
-            console.log(userRole)
-        return response.status(200).json({message: "Login successfully",userRole,findUser});
+        else if (search.role === "student") {
+            userRole = "student",
+                console.log(findUser)
+            return response.status(200).json({ message: "Login successfully", userRole, findUser });
         }
 
     } catch (err) {
@@ -301,25 +304,25 @@ export const deleteByID = async (request, response) => {
     }
 }
 export const uploadProfile = async (req, res) => {
-  try {
-    const userId = req.params.id;
-    const profileFile = req.file;
+    try {
+        const userId = req.params.id;
+        const profileFile = req.file;
 
-    if (!profileFile) {
-      return res.status(400).json({ error: "No file uploaded" });
+        if (!profileFile) {
+            return res.status(400).json({ error: "No file uploaded" });
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { profile: profileFile.filename },
+            { new: true, runValidators: true }
+        );
+
+        res.status(200).json({ message: "Profile uploaded successfully", user: updatedUser });
+    } catch (error) {
+        console.error("Upload Profile Error:", error);
+        res.status(500).json({ error: "Something went wrong while uploading profile." });
     }
-
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      { profile: profileFile.filename },  
-      { new: true, runValidators: true }
-    );
-
-    res.status(200).json({ message: "Profile uploaded successfully", user: updatedUser });
-  } catch (error) {
-    console.error("Upload Profile Error:", error);
-    res.status(500).json({ error: "Something went wrong while uploading profile." });
-  }
 };
 
 export const getAll = async (request, response) => {
@@ -333,3 +336,27 @@ export const getAll = async (request, response) => {
     }
 }
 
+export const profileDataUpdate = async (request, response) => {
+  try {
+    const id = request.params.id;
+    const { name, email, bio } = request.body;
+
+    const existUser = await User.findById(id);
+    if (!existUser) return response.status(404).json({ message: "User not found" });
+
+    const userProfile = await User.findByIdAndUpdate(
+      id,
+      {
+        name: name ?? existUser.name,
+        email: email ?? existUser.email,
+        bio: bio ?? existUser.bio,
+      },
+      { new: true }
+    );
+
+    response.json({ message: "Profile updated", userProfile });
+  } catch (err) {
+    console.error("Profile update error:", err);
+    response.status(500).json({ message: "Server error", error: err.message });
+  }
+};
