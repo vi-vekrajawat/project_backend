@@ -17,7 +17,7 @@ mongoose.connect(process.env.DB_URL).then((result) => {
     app.use("/assignment/files", express.static("assignment/files"));
     app.use(express.json())
     // app.use(cors())
-    app.use(cors);
+    app.use(cors());
     app.use(express.urlencoded({ extended: true }))
     app.use('/batch', batchRouter)
     app.use('/admin',adminRouter)

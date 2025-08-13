@@ -30,7 +30,6 @@ export const googleLogin = async (req, res) => {
     }
 };
 
-
 export const uploadStudents = async (req, res) => {
     try {
         if (!req.file) {
@@ -51,7 +50,7 @@ export const uploadStudents = async (req, res) => {
             const name = student.name?.trim();
             const email = student.email?.toLowerCase().trim();
             const role = student.role?.trim().toLowerCase() || "student";
-            const batchId = student.batch?.trim();
+            const batchName = student.batch?.trim(); // batch name from Excel
 
             if (!name || !email) {
                 console.log(`Skipping row ${i + 1}: Missing name or email`);
@@ -70,6 +69,16 @@ export const uploadStudents = async (req, res) => {
                 continue;
             }
 
+            // Find batch by name
+            let batch = null;
+            if (batchName) {
+                batch = await Batch.findOne({ batchName });
+                if (!batch) {
+                    console.log(`Batch not found: ${batchName}`);
+                    continue; // or create new batch if you want
+                }
+            }
+
             const newPassword = genratePassword();
             const hashedPassword = await bcrypt.hash(newPassword, 10);
 
@@ -78,19 +87,19 @@ export const uploadStudents = async (req, res) => {
                 email,
                 role,
                 password: hashedPassword,
-                batch: batchId,
-                isApproved: true // Set to true or false based on your workflow
+                batch: batch ? batch._id : null, // assign batch ID
+                isApproved: true
             });
 
             await sendPasswordEmail(email, name, newPassword);
 
-            if (batchId && (role === "student" || role === "teacher")) {
+            if (batch && (role === "student" || role === "teacher")) {
                 const updateField = role === "student" ? { students: newUser._id } : { teachers: newUser._id };
 
                 await Batch.findOneAndUpdate(
-                    { _id: batchId },
+                    { _id: batch._id },
                     { $push: updateField },
-                    { new: true, upsert: true }
+                    { new: true }
                 );
             }
 
@@ -98,22 +107,26 @@ export const uploadStudents = async (req, res) => {
                 name,
                 email,
                 password: newPassword,
+                batch: batchName
             });
 
-            console.log("Created User", email)
+            console.log("Created User", email);
         }
 
         res.status(200).json({
-            message: " Successfully created ", students: results,
+            message: "Successfully created",
+            students: results,
         });
 
     } catch (error) {
-        console.error(" Error:", error);
+        console.error("Error:", error);
         res.status(500).json({
             message: "Something went wrong during student upload.",
         });
     }
 };
+
+
 
 export const insertStudent = async (req, res) => {
     try {

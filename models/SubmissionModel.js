@@ -1,31 +1,40 @@
 import mongoose from "mongoose";
 
 const submissionSchema = new mongoose.Schema({
-    assignmentId:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"Assignment",
-        required:true
+    assignmentId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Assignment",
+        required: true
     },
-    userId:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"User",
-        required:true
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
     },
-    fileName:{
-        type:String
+    batchId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Batch",
+        required: true
     },
-    description:{
-        type:String
+    fileName: {
+        type: String
+    },
+    description: {
+        type: String
 
     },
-    feedback:{
-        type:String
+    feedback: {
+        type: String
     },
-    status:{
-        type:String,
-        required:true
+    status: {
+        type: String,
+        required: true
+    },
+     submittedAt: {
+        type: Date,
+        default: Date.now // yeh automatically submit time ka date/time store karega
     }
 })
 
-const Submission = mongoose.model("Submission",submissionSchema)
+const Submission = mongoose.model("Submission", submissionSchema)
 export default Submission

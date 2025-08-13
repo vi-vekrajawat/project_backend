@@ -22,9 +22,11 @@ export const submissionId = async (request, response) => {
 
 export const submitAssignment = async (req, res) => {
   try {
-    const { userId, assignmentId, description, feedback, status } = req.body;
+    const { userId, assignmentId, description, feedback, status, batchId } = req.body;
+    console.log(assignmentId)
+    console.log(userId)
 
-    const alreadySubmitted = await Submission.findOne({ userId, assignmentId });
+    const alreadySubmitted = await Submission.findOne({ userId, assignmentId })
     if (alreadySubmitted) {
       console.log("submitted")
       return res.status(400).json({ message: "Already submitted this assignment." });
@@ -33,6 +35,7 @@ export const submitAssignment = async (req, res) => {
     const newSubmission = await Submission.create({
       userId,
       assignmentId,
+      batchId,
       description,
       feedback,
       status,
@@ -48,7 +51,7 @@ export const submitAssignment = async (req, res) => {
 
 export const getAll = async (request, response) => {
   try {
-    const allass = await Submission.find()
+    const allass = await Submission.find().populate("assignmentId").populate("batchId").populate("userId");
     return response.json({ message: "All Asignments", allass })
   }
   catch (err) {
@@ -60,12 +63,12 @@ export const getSubmittedAssignmentIds = async (req, res) => {
   try {
     const { studentId } = req.params;
     console.log(studentId)
-    const submissions = await Submission.find({ userId: studentId }).select("assignmentId");
+    const submissions = await Submission.find({ userId: studentId }).populate("assignmentId");
     console.log(submissions)
 
-    const submittedAssignmentIds = submissions.map(sub => sub.assignmentId.toString());
-console.log(submittedAssignmentIds)
-    res.json({ submittedAssignmentIds });
+    // const submittedAssignmentIds = submissions.map(sub => sub.assignmentId.toString());
+    // console.log(submittedAssignmentIds)
+    res.json({ submissions });
   } catch (err) {
     console.error("Error fetching submitted assignment IDs:", err);
     res.status(500).json({ message: "Server error while fetching submitted assignments." });
