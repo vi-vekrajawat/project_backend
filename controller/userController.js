@@ -373,3 +373,84 @@ export const profileDataUpdate = async (request, response) => {
     response.status(500).json({ message: "Server error", error: err.message });
   }
 };
+
+// New Routes I am adding here
+
+
+export const assignTeacherToBatch = async (req, res) => {
+  try {
+    const { teacherId, batchId } = req.params;
+
+    const teacher = await User.findById(teacherId);
+    const batch = await Batch.findById(batchId);
+
+    if (!teacher || teacher.role !== "teacher") {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+    if (!batch) {
+      return res.status(404).json({ message: "Batch not found" });
+    }
+
+    if (!teacher.accessibleBatches.includes(batchId)) {
+      teacher.accessibleBatches.push(batchId);
+      await teacher.save();
+    }
+
+    if (!batch.teachers.includes(teacherId)) {
+      batch.teachers.push(teacherId);
+      await batch.save();
+    }
+
+    res.json({ message: "Teacher assigned successfully", teacher, batch });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const removeTeacherFromBatch = async (req, res) => {
+  try {
+    const { teacherId, batchId } = req.params;
+
+    const teacher = await User.findById(teacherId);
+    if (!teacher || teacher.role !== "teacher") {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+
+    let batch = null;
+
+    if (batchId) {
+      batch = await Batch.findById(batchId);
+      if (!batch) return res.status(404).json({ message: "Batch not found" });
+
+      // Remove batch from teacher
+      teacher.accessibleBatches = teacher.accessibleBatches.filter(
+        (b) => b.toString() !== batchId
+      );
+      await teacher.save();
+
+      // Remove teacher from batch
+      batch.teachers = batch.teachers.filter((t) => t.toString() !== teacherId);
+      await batch.save();
+
+      return res.json({
+        message: `Teacher removed from batch "${batch.batchName}" successfully`,
+        teacher,
+        batch,
+      });
+    } else {
+      // Delete teacher completely
+      await User.findByIdAndDelete(teacherId);
+
+      // Remove teacher from all batches
+      await Batch.updateMany(
+        { teachers: teacherId },
+        { $pull: { teachers: teacherId } }
+      );
+
+      return res.json({ message: "Teacher deleted completely", teacherId });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: error.message });
+  }
+};
