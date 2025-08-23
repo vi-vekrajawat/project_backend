@@ -65,9 +65,6 @@ export const getSubmittedAssignmentIds = async (req, res) => {
     console.log(studentId)
     const submissions = await Submission.find({ userId: studentId }).populate("assignmentId");
     console.log(submissions)
-
-    // const submittedAssignmentIds = submissions.map(sub => sub.assignmentId.toString());
-    // console.log(submittedAssignmentIds)
     res.json({ submissions });
   } catch (err) {
     console.error("Error fetching submitted assignment IDs:", err);

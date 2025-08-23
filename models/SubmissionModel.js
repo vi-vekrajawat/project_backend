@@ -30,9 +30,9 @@ const submissionSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-     submittedAt: {
+    submittedAt: {
         type: Date,
-        default: Date.now // yeh automatically submit time ka date/time store karega
+        default: Date.now
     }
 })
 

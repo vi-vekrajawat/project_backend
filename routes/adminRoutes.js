@@ -1,5 +1,5 @@
 import express from "express";
-import { insertStudent,uploadStudents ,userLogin,deleteByID,uploadProfile, getAll,googleLogin,profileDataUpdate,assignTeacherToBatch,removeTeacherFromBatch} from "../controller/userController.js";
+import { insertStudent,uploadStudents ,userLogin,deleteByID,uploadProfile, getAll,googleLogin,profileDataUpdate,assignBatch,removeTeacherFromBatch} from "../controller/userController.js";
 import multer from "multer";
 const upload = multer({dest:'uploads/profile'})
 const adminRouter = express.Router()
@@ -12,9 +12,10 @@ adminRouter.delete('/delete/:id',deleteByID)
 adminRouter.patch('/profile/:id',upload.single("profile"),uploadProfile)
 adminRouter.patch('/profile-data/:id',profileDataUpdate)
 adminRouter.post('/google-login', googleLogin);
+adminRouter.put("/assign-batch/:teacherId", assignBatch);
 
 
-adminRouter.delete("/:teacherId/:batchId", removeTeacherFromBatch);
+adminRouter.delete("teacher/:teacherId", removeTeacherFromBatch);
 
 
 export default adminRouter

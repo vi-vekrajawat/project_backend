@@ -41,7 +41,7 @@ export const uploadStudents = async (req, res) => {
         const worksheet = workbook.Sheets[sheetName];
         const students = xlsx.utils.sheet_to_json(worksheet);
 
-        const seenEmails = new Set(); // To track duplicate emails in Excel
+        const seenEmails = new Set(); 
         const results = [];
 
         for (let i = 0; i < students.length; i++) {
@@ -50,7 +50,7 @@ export const uploadStudents = async (req, res) => {
             const name = student.name?.trim();
             const email = student.email?.toLowerCase().trim();
             const role = student.role?.trim().toLowerCase() || "student";
-            const batchName = student.batch?.trim(); // batch name from Excel
+            const batchName = student.batch?.trim(); 
 
             if (!name || !email) {
                 console.log(`Skipping row ${i + 1}: Missing name or email`);
@@ -69,13 +69,12 @@ export const uploadStudents = async (req, res) => {
                 continue;
             }
 
-            // Find batch by name
             let batch = null;
             if (batchName) {
                 batch = await Batch.findOne({ batchName });
                 if (!batch) {
                     console.log(`Batch not found: ${batchName}`);
-                    continue; // or create new batch if you want
+                    continue; 
                 }
             }
 
@@ -87,7 +86,7 @@ export const uploadStudents = async (req, res) => {
                 email,
                 role,
                 password: hashedPassword,
-                batch: batch ? batch._id : null, // assign batch ID
+                batch: batch ? batch._id : null, 
                 isApproved: true
             });
 
@@ -132,7 +131,6 @@ export const insertStudent = async (req, res) => {
     try {
         const { name, email, role, batch } = req.body;
 
-        // Check basic required fields
         if (!name || name.trim() === "") {
             return res.status(400).json({ message: "Name is required" });
         }
@@ -144,7 +142,6 @@ export const insertStudent = async (req, res) => {
         const trimmedEmail = email.trim();
         const trimmedName = name.trim();
 
-        // If user already exists
         const userExists = await User.findOne({ email: trimmedEmail });
         if (userExists) {
             return res.status(400).json({ message: "User already exists" });
@@ -152,7 +149,6 @@ export const insertStudent = async (req, res) => {
 
         let batchDoc = null;
 
-        // Only check batch if user is not admin
         if (userRole !== "admin") {
             if (!batch || batch.trim() === "") {
                 return res.status(400).json({ message: "Please select a batch" });
@@ -164,14 +160,11 @@ export const insertStudent = async (req, res) => {
             }
         }
 
-        // Generate and hash password
         const plainPassword = genratePassword();
         const hashedPassword = await bcrypt.hash(plainPassword, 12);
 
-        // Send password to user's email
         await sendPasswordEmail(trimmedEmail, trimmedName, plainPassword);
 
-        // Create user
         const newUser = await User.create({
             name: trimmedName,
             email: trimmedEmail,
@@ -180,7 +173,6 @@ export const insertStudent = async (req, res) => {
             batch: batchDoc?._id || null
         });
 
-        // Link student or teacher to batch
         if (userRole === "student") {
             await Batch.findByIdAndUpdate(batchDoc._id, { $push: { students: newUser._id } });
         } else if (userRole === "teacher") {
@@ -264,7 +256,6 @@ export const userLogin = async (request, response) => {
         }
 
         const findUser = await User.findOne({ email })
-        // console.log(findUser)
         console.log(findUser.batch)
 
         let userRole = "student"
@@ -290,32 +281,33 @@ export const userLogin = async (request, response) => {
     }
 };
 
-
-
-export const deleteByID = async (request, response) => {
+export const deleteByID = async (req, res) => {
     try {
-        const { id } = request.params
-        const { batch } = request.body
-        const deleteUser = await User.findByIdAndDelete(id)
-        if (!deleteUser) {
-            response.json({ message: "User Not Found" })
-        }
+        const { id } = req.params;
+        console.log(id)
 
-        const findBatch = await Batch.findById(batch)
-        if (findBatch) {
-            const index = findBatch.students.indexOf(id)
-            if (index !== -1) {
-                findBatch.students.splice(index, 1)
-                await findBatch.save()
-            }
+        const findUser = await User.findById(id);
+        if (!findUser)
+            return res.json({ message: "User Not Found" })
+
+        const batchId = await findUser.batch
+
+        if (batchId) {
+            await Batch.findByIdAndUpdate(
+                batchId,
+                { $pull: { students: id } },
+                { new: true }
+            )
         }
-        return response.json({ message: "Deleted Successfully" })
+        await User.findByIdAndDelete(id)
+
+        res.status(200).json({ message: "User Deleted Successfully" })
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Internal server error" });
     }
-    catch (err) {
-        console.log(err)
-        return response.json({ message: "Internal server error" })
-    }
-}
+};
+
 export const uploadProfile = async (req, res) => {
     try {
         const userId = req.params.id;
@@ -350,107 +342,111 @@ export const getAll = async (request, response) => {
 }
 
 export const profileDataUpdate = async (request, response) => {
-  try {
-    const id = request.params.id;
-    const { name, email, bio } = request.body;
+    try {
+        const id = request.params.id;
+        const { name, email, bio } = request.body;
 
-    const existUser = await User.findById(id);
-    if (!existUser) return response.status(404).json({ message: "User not found" });
+        const existUser = await User.findById(id);
+        if (!existUser) return response.status(404).json({ message: "User not found" });
 
-    const userProfile = await User.findByIdAndUpdate(
-      id,
-      {
-        name: name ?? existUser.name,
-        email: email ?? existUser.email,
-        bio: bio ?? existUser.bio,
-      },
-      { new: true }
-    );
+        const userProfile = await User.findByIdAndUpdate(
+            id,
+            {
+                name: name ?? existUser.name,
+                email: email ?? existUser.email,
+                bio: bio ?? existUser.bio,
+            },
+            { new: true }
+        );
 
-    response.json({ message: "Profile updated", userProfile });
-  } catch (err) {
-    console.error("Profile update error:", err);
-    response.status(500).json({ message: "Server error", error: err.message });
-  }
+        response.json({ message: "Profile updated", userProfile });
+    } catch (err) {
+        console.error("Profile update error:", err);
+        response.status(500).json({ message: "Server error", error: err.message });
+    }
 };
 
-// New Routes I am adding here
-
-
 export const assignTeacherToBatch = async (req, res) => {
-  try {
-    const { teacherId, batchId } = req.params;
+    try {
+        const { teacherId, batchId } = req.params;
 
-    const teacher = await User.findById(teacherId);
-    const batch = await Batch.findById(batchId);
+        const teacher = await User.findById(teacherId);
+        const batch = await Batch.findById(batchId);
 
-    if (!teacher || teacher.role !== "teacher") {
-      return res.status(404).json({ message: "Teacher not found" });
+        if (!teacher || teacher.role !== "teacher") {
+            return res.status(404).json({ message: "Teacher not found" });
+        }
+        if (!batch) {
+            return res.status(404).json({ message: "Batch not found" });
+        }
+
+        if (!teacher.accessibleBatches.includes(batchId)) {
+            teacher.accessibleBatches.push(batchId);
+            await teacher.save();
+        }
+
+        if (!batch.teachers.includes(teacherId)) {
+            batch.teachers.push(teacherId);
+            await batch.save();
+        }
+
+        res.json({ message: "Teacher assigned successfully", teacher, batch });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
+};
+export const removeTeacherFromBatch = async (req, res) => {
+    try {
+        const { teacherId } = req.params;
+
+        const teacher = await User.findById(teacherId);
+        if (!teacher) 
+            return res.status(404).json({ message: "Teacher not found" });
+    
+        const batchId = await teacher.batch
+        console.log(batchId)
+        if(batchId){
+            await Batch.findByIdAndUpdate(
+                batchId,
+                {$pull:{teachers:teacherId}},
+                {new:true}
+            )
+        }
+        await User.findByIdAndDelete(teacherId)
+        res.json({message:"Teacher Deleted Successfully"})
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: error.message });
+    }
+};
+
+
+export const assignBatch = async (req, res) => {
+  try {
+    const { teacherId } = req.params;
+    const { batchId } = req.body;
+
+    const batch = await Batch.findById(batchId);
     if (!batch) {
       return res.status(404).json({ message: "Batch not found" });
     }
 
-    if (!teacher.accessibleBatches.includes(batchId)) {
-      teacher.accessibleBatches.push(batchId);
-      await teacher.save();
-    }
+    const updatedTeacher = await User.findByIdAndUpdate(
+      teacherId,
+      { batch: batchId },
+      { new: true }
+    ).populate("batch"); 
 
-    if (!batch.teachers.includes(teacherId)) {
-      batch.teachers.push(teacherId);
-      await batch.save();
-    }
-
-    res.json({ message: "Teacher assigned successfully", teacher, batch });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-export const removeTeacherFromBatch = async (req, res) => {
-  try {
-    const { teacherId, batchId } = req.params;
-
-    const teacher = await User.findById(teacherId);
-    if (!teacher || teacher.role !== "teacher") {
+    if (!updatedTeacher) {
       return res.status(404).json({ message: "Teacher not found" });
     }
 
-    let batch = null;
-
-    if (batchId) {
-      batch = await Batch.findById(batchId);
-      if (!batch) return res.status(404).json({ message: "Batch not found" });
-
-      // Remove batch from teacher
-      teacher.accessibleBatches = teacher.accessibleBatches.filter(
-        (b) => b.toString() !== batchId
-      );
-      await teacher.save();
-
-      // Remove teacher from batch
-      batch.teachers = batch.teachers.filter((t) => t.toString() !== teacherId);
-      await batch.save();
-
-      return res.json({
-        message: `Teacher removed from batch "${batch.batchName}" successfully`,
-        teacher,
-        batch,
-      });
-    } else {
-      // Delete teacher completely
-      await User.findByIdAndDelete(teacherId);
-
-      // Remove teacher from all batches
-      await Batch.updateMany(
-        { teachers: teacherId },
-        { $pull: { teachers: teacherId } }
-      );
-
-      return res.json({ message: "Teacher deleted completely", teacherId });
-    }
+    res.json({
+      message: "Batch assigned successfully",
+      teacher: updatedTeacher
+    });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: error.message });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+

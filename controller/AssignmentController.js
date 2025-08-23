@@ -4,12 +4,7 @@ import Batch from '../models/BatchModel.js';
 import User from '../models/User.js';
 export const assignmentCreate = async (req, res) => {
     try {
-        const { title, batchId, description, instructions, subject, deadline,teacherId  } = req.body;
-
-        // Validate batchId
-        //  if (!teacherId) {
-        //     return res.status(400).json({ message: "User not found !" });
-        // }
+        const { title, batchId, description, instructions, subject, deadline, teacherId } = req.body;
         if (!batchId) {
             return res.status(400).json({ message: "Batch not found" });
         }
@@ -72,8 +67,6 @@ export const getByTeacherId = async (req, res) => {
     try {
         const tId = req.params.id
         const findAssignment = await Assignment.find({ teacherId: tId })
-
-        // const assignment = await Assignment.find().populate("teacherId");
         return res.json({ message: "all assignment", findAssignment });
     } catch (err) {
         console.log(err);

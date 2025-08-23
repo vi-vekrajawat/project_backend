@@ -24,7 +24,7 @@ const batchSchema = new mongoose.Schema({
             ref: "User",
         },
     ],
-      assignments: [
+    assignments: [
         {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Assignment",

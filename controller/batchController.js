@@ -6,7 +6,6 @@ import AssignmentModel from "../models/AssignmentModel.js";
 export const deleteBatch = async (request, response) => {
     try {
         const id = request.params.id
-        // const id1 = "688cef9c5e3007bf7e2d7f72"
         console.log(id)
         const findBatch = await Batch.findById(id)
         const alldelete = await User.deleteMany({ _id: { $in: [...findBatch.students, ...findBatch.teachers] } })
