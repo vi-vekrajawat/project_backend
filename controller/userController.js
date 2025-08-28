@@ -420,7 +420,6 @@ export const removeTeacherFromBatch = async (req, res) => {
     }
 };
 
-
 export const assignBatch = async (req, res) => {
   try {
     const { teacherId } = req.params;
@@ -431,22 +430,38 @@ export const assignBatch = async (req, res) => {
       return res.status(404).json({ message: "Batch not found" });
     }
 
+    // Step 1: Teacher ko find karo (old batch id ke liye)
+    const teacher = await User.findById(teacherId);
+    if (!teacher) {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+
+    const oldBatchId = teacher.batch;
+
+    // Step 2: Agar teacher pehle kisi batch me tha, us batch se remove karo
+    if (oldBatchId) {
+      await Batch.findByIdAndUpdate(oldBatchId, {
+        $pull: { teachers: teacherId },
+      });
+    }
+
+    // Step 3: Teacher ka batch update karo
     const updatedTeacher = await User.findByIdAndUpdate(
       teacherId,
       { batch: batchId },
       { new: true }
-    ).populate("batch"); 
+    );
 
-    if (!updatedTeacher) {
-      return res.status(404).json({ message: "Teacher not found" });
-    }
+    // Step 4: New batch me teacher ko add karo
+    await Batch.findByIdAndUpdate(batchId, {
+      $addToSet: { teachers: teacherId },
+    });
 
     res.json({
       message: "Batch assigned successfully",
-      teacher: updatedTeacher
+      teacher: updatedTeacher,
     });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
-

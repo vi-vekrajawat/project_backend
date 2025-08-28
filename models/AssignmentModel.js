@@ -20,7 +20,7 @@ const AssignmentSchema = new mongoose.Schema({
     },
     subject: {
         type: String,
-        enum: ['softskil', "technical", 'aptitude'],
+        enum: ['softskill', "technical", 'aptitude'],
         required: true
     },
     deadline:{
