@@ -73,3 +73,28 @@ export const getByTeacherId = async (req, res) => {
         res.status(500).json({ message: "Error fetching assignments" });
     }
 };
+
+// DELETE /assignments/:id
+export const deleteById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // 1. Assignment find karo
+    const assignment = await Assignment.findById(id);
+    if (!assignment) {
+      return res.status(404).json({ message: "Assignment not found" });
+    }
+
+    // 2. Batch se remove karo
+    await Batch.findByIdAndUpdate(assignment.batchId, {
+      $pull: { assignments: assignment._id }
+    });
+
+    // 3. Assignment collection se delete karo
+    await Assignment.findByIdAndDelete(id);
+
+    res.status(200).json({ message: "Assignment deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: "Error deleting assignment", error: err.message });
+  }
+};
