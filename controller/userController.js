@@ -465,3 +465,56 @@ export const assignBatch = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+
+export const changePassword = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password)
+      return res.status(400).json({ message: "Email and password are required" });
+
+    if (password.length < 4)
+      return res.status(400).json({ message: "Password must be at least 4 characters long" });
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await User.findByIdAndUpdate(
+      user._id,
+      { password: hashedPassword },
+      { new: true }
+    );
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: `"Infobeans CSR" <${process.env.EMAIL}>`,
+      to: email,
+      subject: "Password Changed Successfully",
+      html: `
+        <h3>Hello ${user.name},</h3>
+        <p>Your password has been successfully changed.</p>
+        <p><b>New Password:</b> ${password}</p>
+        <br />
+        <p>Regards,<br/>CSR Assignment System</p>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(`Password change notification sent to ${email}`);
+
+    return res.json({ message: "Password changed successfully" });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};

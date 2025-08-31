@@ -6,6 +6,7 @@ import adminRouter from "./routes/adminRoutes.js";
 import batchRouter from "./routes/batchRoutes.js";
 import teacherRoute from "./routes/teacherroutes.js";
 import submissionRouter from "./routes/submissionRoutes.js";
+import noticeRouter from "./routes/NoticeRoute.js";
 dotenv.config();
 const app = express()
 mongoose.connect(process.env.DB_URL).then((result) => {
@@ -18,6 +19,7 @@ mongoose.connect(process.env.DB_URL).then((result) => {
     app.use('/admin',adminRouter)
     app.use('/teacher', teacherRoute)
     app.use('/student', submissionRouter)
+    app.use('/notice',noticeRouter)
     app.listen(3000, () => {
         console.log("Server  Started")
     })

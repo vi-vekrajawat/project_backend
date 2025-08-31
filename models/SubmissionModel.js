@@ -19,16 +19,19 @@ const submissionSchema = new mongoose.Schema({
     fileName: {
         type: String
     },
-    description: {
-        type: String
+    description: {    //Optional
+        type: String,
+        trim:true
 
     },
-    feedback: {
-        type: String
-    },
-    status: {
+    feedback: {        //Optional
         type: String,
-        required: true
+        trim:true
+    },
+    status: {          
+        type: String,
+        required: true,
+        trim:true
     },
     submittedAt: {
         type: Date,

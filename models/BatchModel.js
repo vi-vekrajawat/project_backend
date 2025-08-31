@@ -2,15 +2,18 @@ import mongoose from "mongoose"
 const batchSchema = new mongoose.Schema({
     batchName: {
         type: String,
-        required: true
+        required: true,
+        trim:true
     },
     launchDate: {
         type: Date,
         required: true,
+        trim:true
     },
     expireDate: {
         type: Date,
-        required: true
+        required: true,
+        trim:true
     },
     students: [
         {
